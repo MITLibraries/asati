@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 click = "*"
 sentry-sdk = "*"
+boto3 = "*"
 
 [dev-packages]
 black = "*"
@@ -14,6 +15,8 @@ mypy = "*"
 pre-commit = "*"
 pytest = "*"
 ruff = "*"
+boto3-stubs = "*"
+moto = "*"
 
 [requires]
 python_version = "3.12"
