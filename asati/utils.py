@@ -51,7 +51,7 @@ class SSMClient:
     def get_parameter(self, parameter_name: str) -> str:
         parameter = self.client.get_parameter(Name=parameter_name)
         parameter_value = parameter["Parameter"]["Value"]
-        logger.info(f"SSM parameter retrieved: {parameter_value}")
+        logger.info(f"SSM parameter '{parameter_name}' retrieved: '{parameter_value}'")
         return parameter_value
 
     def update_parameter(self, parameter_name: str, parameter_value: str) -> str:
@@ -63,7 +63,9 @@ class SSMClient:
         updated_parameter = self.client.get_parameter(Name=parameter_name)
         updated_parameter_value = updated_parameter["Parameter"]["Value"]
         if parameter_value == updated_parameter_value:
-            logger.info(f"SSM parameter updated: '{updated_parameter_value}'")
+            logger.info(
+                f"Updated SSM parameter '{parameter_name}' to '{parameter_value}'"
+            )
         else:
             message = "SSM parameter update failed: '{parameter_value}' was not set"
             raise RuntimeError(message)

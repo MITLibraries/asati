@@ -43,6 +43,5 @@ def test_cli_no_accessions_success(mocked_asnake, caplog, runner):
     assert "Logger 'root' configured with level=INFO" in caplog.text
     assert "Running process" in caplog.text
     assert "No new accessions to add to Airtable." in caplog.text
-    assert "Total time to complete process" in caplog.text
     assert "Airtable row created for Accession Number:" not in caplog.text
     assert "Updated SSM parameter" not in caplog.text

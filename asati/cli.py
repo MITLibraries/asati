@@ -24,13 +24,12 @@ def main(*, verbose: bool) -> None:
     logger.info(configure_sentry())
     logger.info("Running process")
 
+    # Get last accession ID from SSM parameter
     ssm_client = SSMClient()
     last_accession_parameter = os.environ["LAST_ACCESSION_PARAMETER"]
     last_accession_uri_id = ssm_client.get_parameter(last_accession_parameter)
-    logger.info(
-        f"SSM parameter '{last_accession_parameter}' retrieved: '{last_accession_uri_id}'"
-    )
 
+    # Retrieve list of all accessions from ArchivesSpace
     asnake_client = ASnakeClient(
         baseurl=os.environ["ARCHIVESSPACE_URL"],
         username=os.environ["ARCHIVESSPACE_USER"],
@@ -40,51 +39,52 @@ def main(*, verbose: bool) -> None:
         "/repositories/2/accessions?all_ids=true"
     ).json()
 
-    if max(accession_uri_ids) <= int(last_accession_uri_id):
+    # Determine new accessions to add to Airtable, exit early if none
+    accessions_to_add = sorted(
+        [
+            accession_uri_id
+            for accession_uri_id in accession_uri_ids
+            if accession_uri_id > int(last_accession_uri_id)
+        ]
+    )
+    if not accessions_to_add:
         logger.info("No new accessions to add to Airtable.")
-    else:
-        airtable_api = pyairtable.Api(os.environ["AIRTABLE_TOKEN"])
-        airtable_table = airtable_api.table(
-            os.environ["AIRTABLE_BASE_ID"], os.environ["AIRTABLE_TABLE_NAME"]
-        )
+        return
+    logger.info(f"Adding the following accessions to Airtable: {accessions_to_add}")
+
+    # Establish connection to Airtable
+    airtable_api = pyairtable.Api(os.environ["AIRTABLE_TOKEN"])
+    airtable_table = airtable_api.table(
+        os.environ["AIRTABLE_BASE_ID"], os.environ["AIRTABLE_TABLE_NAME"]
+    )
+    logger.info(
+        f"Airtable client configured for base '{airtable_table.base}'"
+        f" and table '{airtable_table.name}'"
+    )
+
+    # Add accessions to Airtable
+    for accession_uri_id in accessions_to_add:
+        accession_uri = f"/repositories/2/accessions/{accession_uri_id}"
+        accession_record = asnake_client.get(accession_uri).json()
+        logger.debug(f"Retrieved record: {accession_uri}")
+        accession_data = {
+            "Accession Title": accession_record["title"],
+            "Accession Number": parse_accession_number(accession_record),
+            "Current Status": "Unassigned",
+            **parse_extent_data(accession_record),
+        }
+        logger.debug(f"Data extracted from ArchivesSpace: {accession_data}")
+
+        # Post new rows to Airtable
+        response = airtable_table.create(accession_data)
         logger.info(
-            f"Airtable client configured for base '{airtable_table.base}'"
-            f" and table '{airtable_table.name}'"
+            "Airtable row created for Accession Number: "
+            f"'{response["fields"]["Accession Number"]}'"
         )
-        accessions_to_add = sorted(
-            [
-                accession_uri_id
-                for accession_uri_id in accession_uri_ids
-                if accession_uri_id > int(last_accession_uri_id)
-            ]
-        )
-        logger.info(f"Adding the following accessions to Airtable: {accessions_to_add}")
-        for accession_uri_id in accessions_to_add:
-            accession_uri = f"/repositories/2/accessions/{accession_uri_id}"
-            accession_record = asnake_client.get(accession_uri).json()
-            logger.debug(f"Retrieved record: {accession_uri}")
-            accession_data = {
-                "Accession Title": accession_record["title"],
-                "Accession Number": parse_accession_number(accession_record),
-                "Current Status": "Unassigned",
-                **parse_extent_data(accession_record),
-            }
-            logger.debug(f"Data extracted from ArchivesSpace: {accession_data}")
 
-            response = airtable_table.create(accession_data)
-            logger.info(
-                "Airtable row created for Accession Number: "
-                f"'{response["fields"]["Accession Number"]}'"
-            )
-
-            logger.info(f"Last accession ID processed: '{accession_uri_id}'")
-            updated_last_accession_uri_id = ssm_client.update_parameter(
-                last_accession_parameter, str(accession_uri_id)
-            )
-            logger.info(
-                f"Updated SSM parameter '{last_accession_parameter}' "
-                f"to '{updated_last_accession_uri_id}'"
-            )
+        # Update SSM parameter
+        logger.debug(f"Last accession ID processed: '{accession_uri_id}'")
+        ssm_client.update_parameter(last_accession_parameter, str(accession_uri_id))
 
     elapsed_time = perf_counter() - start_time
     logger.info(
