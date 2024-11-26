@@ -77,7 +77,7 @@ def main(*, verbose: bool) -> None:
                 f"'{response["fields"]["Accession Number"]}'"
             )
 
-            logger.info(f"Last accession ID processed: {accession_uri_id}")
+            logger.info(f"Last accession ID processed: '{accession_uri_id}'")
             updated_last_accession_uri_id = ssm_client.update_parameter(
                 last_accession_parameter, str(accession_uri_id)
             )

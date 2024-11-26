@@ -9,7 +9,6 @@ boto3 = "*"
 click = "*"
 pyairtable = "*"
 sentry-sdk = "*"
-pydantic = "==2.9"
 
 [dev-packages]
 black = "*"
