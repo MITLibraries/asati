@@ -4,19 +4,21 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-click = "*"
-sentry-sdk = "*"
+archivessnake = "*"
 boto3 = "*"
+click = "*"
+pyairtable = "*"
+sentry-sdk = "*"
 
 [dev-packages]
 black = "*"
+boto3-stubs = "*"
 coveralls = "*"
+moto = "*"
 mypy = "*"
 pre-commit = "*"
 pytest = "*"
 ruff = "*"
-boto3-stubs = "*"
-moto = "*"
 
 [requires]
 python_version = "3.12"
