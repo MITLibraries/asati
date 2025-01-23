@@ -3,7 +3,8 @@ DATETIME:=$(shell date -u +%Y%m%dT%H%M%SZ)
 ### This is the Terraform-generated header for asati-dev. If ###
 ### this is a Lambda repo, uncomment the FUNCTION line below ###
 ### and review the other commented lines in the document. ###
-ECR_NAME_DEV:=asati-dev\nECR_URL_DEV:=222053980223.dkr.ecr.us-east-1.amazonaws.com/asati-dev
+ECR_NAME_DEV:=asati-dev
+ECR_URL_DEV:=222053980223.dkr.ecr.us-east-1.amazonaws.com/asati-dev
 # FUNCTION_DEV:=
 ### End of Terraform-generated header ###
 
@@ -65,13 +66,15 @@ ruff-apply: # Resolve 'fixable errors' with 'ruff'
 ### Terraform-generated Developer Deploy Commands for Dev environment ###
 dist-dev:
 ## Build docker container (intended for developer-based manual build)
-	docker build --platform linux/amd64 \\\n\t -t $(ECR_URL_DEV):latest \\
+	docker build --platform linux/amd64 \\
+		-t $(ECR_URL_DEV):latest \\
 		-t $(ECR_URL_DEV):`git describe --always` \\
 		-t $(ECR_NAME_DEV):latest .
 
 publish-dev: dist-dev
 ## Build, tag and push (intended for developer-based manual publish)
-	docker login -u AWS -p $$(aws ecr get-login-password --region us-east-1) $(ECR_URL_DEV)\n\tdocker push $(ECR_URL_DEV):latest
+	docker login -u AWS -p $$(aws ecr get-login-password --region us-east-1) $(ECR_URL_DEV)
+	docker push $(ECR_URL_DEV):latest
 	docker push $(ECR_URL_DEV):`git describe --always`
 
 ### If this is a Lambda repo, uncomment the two lines below ###
