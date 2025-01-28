@@ -26,7 +26,7 @@ def main(*, verbose: bool) -> None:
 
     # Get last accession ID from SSM parameter
     ssm_client = SSMClient()
-    last_accession_parameter = os.environ["LAST_ACCESSION_PARAMETER"]
+    last_accession_parameter = "/apps/asati/last-accession-uri-id"
     last_accession_uri_id = ssm_client.get_parameter(last_accession_parameter)
 
     # Retrieve list of all accessions from ArchivesSpace
