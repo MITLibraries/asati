@@ -19,6 +19,9 @@ Sentry will be used for exception monitoring and the application is expected to 
 - To lint the repo: `make lint`
 - To run the app: `uv run asati --help`
 
+### Manual testing
+Follow these instructions whenever manual testing needed after a spec alignment or other significant code updates: [ASATI manual testing](https://mitlibraries.atlassian.net/wiki/x/E4BmWgE)
+
 ### Environment Variables
 
 #### Required
