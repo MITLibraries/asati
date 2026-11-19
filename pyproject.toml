@@ -66,6 +66,11 @@ ignore = [
     "PLR0913",
     "PLR0915",
     "S321",
+    "CPY001",
+    "TD002",
+    "TD003",
+
+    # project-specific
     "G004",
 ]
 
